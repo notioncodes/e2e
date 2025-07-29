@@ -44,7 +44,6 @@ func main() {
 			EnableReporter: true,
 			Reporter: &plugin.Reporter{
 				Interval: 3 * time.Second,
-				// BatchSize: 10,
 			},
 		},
 		ClientConfig: redis.ClientConfig{
@@ -53,7 +52,8 @@ func main() {
 			Username: test.TestConfig.RedisUsername,
 			Password: test.TestConfig.RedisPassword,
 		},
-		Workers:           4,
+		Workers:           10,
+		BatchSize:         10,
 		Timeout:           30 * time.Second,
 		ObjectTypes:       []types.ObjectType{types.ObjectTypePage, types.ObjectTypeDatabase},
 		IncludeBlocks:     true,
@@ -62,6 +62,7 @@ func main() {
 		ProgressBatchSize: 25,
 		ContinueOnError:   true,
 		MaxErrors:         10,
+		Flush:             true,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -70,6 +71,13 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
+
+	if redisPlugin.Flush {
+		err := redisPlugin.RedisClient.Flush()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	result, err := redisPlugin.Service.ExportAll(ctx)
 	if err != nil {

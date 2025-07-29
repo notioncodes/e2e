@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/mateothegreat/go-multilog/multilog"
 	"github.com/notioncodes/client"
 	"github.com/notioncodes/plugin"
 	redis "github.com/notioncodes/plugin-redis"
@@ -21,12 +22,29 @@ func main() {
 	}
 	defer client.Close()
 
+	// // defaultRedisConfig returns sensible defaults for Redis configuration.
+	// func defaultRedisConfig() *ClientConfig {
+	// 	return &ClientConfig{
+	// 		Address:      "localhost:6379",
+	// 		Database:     0,
+	// 		KeyPrefix:    "notion",
+	// 		KeySeparator: ":",
+	// 		TTL:          24 * time.Hour,
+	// 		PrettyJSON:   false,
+	// 		IncludeMeta:  true,
+	// 		Pipeline:     true,
+	// 		BatchSize:    100,
+	// 		MaxRetries:   3,
+	// 		RetryBackoff: time.Second,
+	// 	}
+	// }
+
 	redisPlugin, err := redis.NewPlugin(client, redis.Config{
 		BaseConfig: plugin.BaseConfig{
 			EnableReporter: true,
 			Reporter: &plugin.Reporter{
-				Interval:  2 * time.Second,
-				BatchSize: 2,
+				Interval: 3 * time.Second,
+				// BatchSize: 10,
 			},
 		},
 		ClientConfig: redis.ClientConfig{
@@ -35,6 +53,8 @@ func main() {
 			Username: test.TestConfig.RedisUsername,
 			Password: test.TestConfig.RedisPassword,
 		},
+		Workers:           4,
+		Timeout:           30 * time.Second,
 		ObjectTypes:       []types.ObjectType{types.ObjectTypePage, types.ObjectTypeDatabase},
 		IncludeBlocks:     true,
 		EnableProgress:    true,
@@ -48,17 +68,17 @@ func main() {
 	}
 	defer redisPlugin.NotionClient.Close()
 
-	// Export all content
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
-
-	log.Printf("Starting export...")
 
 	result, err := redisPlugin.Service.ExportAll(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Exported %d objects successfully in %v", result.Success, time.Since(result.Start))
-	log.Printf("Export stats: %+v", result)
+	multilog.Info("e2e", "export completed", map[string]interface{}{
+		"duration": time.Since(result.Start),
+		"success":  result.Success,
+		"errors":   result.Errors,
+	})
 }

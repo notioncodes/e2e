@@ -17,6 +17,7 @@ func main() {
 	client, err := client.New(&client.Config{
 		APIKey:        test.TestConfig.NotionAPIKey,
 		EnableMetrics: true,
+		RequestDelay:  1 * time.Second, // Throttle requests to prevent API overload
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -90,6 +91,8 @@ func main() {
 				"errors":              metrics.TotalErrors,
 				"successes":           metrics.TotalSuccesses,
 				"retries":             metrics.TotalRetries,
+				"throttled":           metrics.ThrottleWaits,
+				"throttled_time":      metrics.ThrottleWaitTime,
 			})
 		}
 	}()
@@ -113,6 +116,7 @@ func main() {
 	multilog.Info("e2e", "export completed", map[string]interface{}{
 		"duration": time.Since(result.Start),
 		"success":  result.Success,
+		"requests": result.Requests,
 		"errors":   result.Errors,
 	})
 }

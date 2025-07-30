@@ -48,7 +48,7 @@ func main() {
 			Workers:         1,
 			RuntimeTimeout:  30 * time.Second,
 			RequestTimeout:  10 * time.Second,
-			RequestDelay:    1 * time.Second,
+			RequestDelay:    5 * time.Second,
 			ContinueOnError: false,
 		},
 		Content: plugin.ContentSettings{

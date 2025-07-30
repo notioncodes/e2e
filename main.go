@@ -15,9 +15,9 @@ import (
 func main() {
 	redisPlugin, err := redis.NewPlugin(redis.Config{
 		Config: plugin.Config{
-			EnableReporter: true,
-			Reporter: &plugin.Reporter{
-				Interval: 3 * time.Second,
+			EnableReporter: false,
+			Reporter:       &plugin.Reporter{
+				// Interval: 3 * time.Second,
 			},
 		},
 		ClientConfig: redis.ClientConfig{
@@ -50,6 +50,9 @@ func main() {
 			Databases: plugin.DatabaseSettings{
 				Pages:  true,
 				Blocks: true,
+				IDs: []types.DatabaseID{
+					types.DatabaseID("23fd7342e57181668a2ee373221477ad"),
+				},
 			},
 			Pages: plugin.PageSettings{
 				Blocks: true,
@@ -77,7 +80,6 @@ func main() {
 	}
 
 	result, err := redisPlugin.Service.Export(ctx)
-	// result, err := redisPlugin.Service.ExportDatabase(ctx, types.DatabaseID("23fd7342e57181668a2ee373221477ad"), true)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,5 +89,6 @@ func main() {
 		"success":  result.Success,
 		"requests": result.Requests,
 		"errors":   result.Errors,
+		"total":    result.Total(),
 	})
 }

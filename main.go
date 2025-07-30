@@ -55,9 +55,9 @@ func main() {
 				},
 			},
 			Pages: plugin.PageSettings{
-				Blocks: true,
-				// Comments:    true,
-				// Attachments: true,
+				Blocks:      true,
+				Comments:    true,
+				Attachments: true,
 			},
 			Blocks: plugin.BlockSettings{
 				Children: true,

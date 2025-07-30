@@ -49,7 +49,7 @@ func main() {
 		Common: plugin.CommonSettings{
 			Workers:         1,
 			RuntimeTimeout:  30 * time.Minute,
-			RequestTimeout:  10 * time.Second,
+			RequestTimeout:  10 * time.Minute,
 			RequestDelay:    5 * time.Second,
 			ContinueOnError: false,
 		},

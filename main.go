@@ -22,47 +22,55 @@ func main() {
 	}
 	defer client.Close()
 
-	// // defaultRedisConfig returns sensible defaults for Redis configuration.
-	// func defaultRedisConfig() *ClientConfig {
-	// 	return &ClientConfig{
-	// 		Address:      "localhost:6379",
-	// 		Database:     0,
-	// 		KeyPrefix:    "notion",
-	// 		KeySeparator: ":",
-	// 		TTL:          24 * time.Hour,
-	// 		PrettyJSON:   false,
-	// 		IncludeMeta:  true,
-	// 		Pipeline:     true,
-	// 		BatchSize:    100,
-	// 		MaxRetries:   3,
-	// 		RetryBackoff: time.Second,
-	// 	}
-	// }
-
 	redisPlugin, err := redis.NewPlugin(client, redis.Config{
-		BaseConfig: plugin.BaseConfig{
+		Config: plugin.Config{
 			EnableReporter: true,
 			Reporter: &plugin.Reporter{
 				Interval: 3 * time.Second,
 			},
 		},
 		ClientConfig: redis.ClientConfig{
-			Address:  test.TestConfig.RedisAddress,
-			Database: test.TestConfig.RedisDatabase,
-			Username: test.TestConfig.RedisUsername,
-			Password: test.TestConfig.RedisPassword,
+			Address:      test.TestConfig.RedisAddress,
+			Database:     test.TestConfig.RedisDatabase,
+			Username:     test.TestConfig.RedisUsername,
+			Password:     test.TestConfig.RedisPassword,
+			KeyPrefix:    "test",
+			KeySeparator: ":",
+			TTL:          24 * time.Hour,
+			PrettyJSON:   true,
+			IncludeMeta:  true,
+			Pipeline:     true,
+			BatchSize:    100,
+			MaxRetries:   3,
+			RetryBackoff: time.Second,
 		},
-		Workers:           10,
-		BatchSize:         10,
-		Timeout:           30 * time.Second,
-		ObjectTypes:       []types.ObjectType{types.ObjectTypePage, types.ObjectTypeDatabase},
-		IncludeBlocks:     true,
-		EnableProgress:    true,
-		ProgressInterval:  2 * time.Second,
-		ProgressBatchSize: 25,
-		ContinueOnError:   true,
-		MaxErrors:         10,
-		Flush:             true,
+		Common: plugin.CommonSettings{
+			Workers:         1,
+			RuntimeTimeout:  30 * time.Second,
+			RequestTimeout:  10 * time.Second,
+			RequestDelay:    1 * time.Second,
+			ContinueOnError: false,
+		},
+		Content: plugin.ContentSettings{
+			Flush: true,
+			Types: []types.ObjectType{
+				types.ObjectTypePage,
+				types.ObjectTypeDatabase,
+				types.ObjectTypeBlock,
+			},
+			Databases: plugin.DatabaseSettings{
+				Pages:  true,
+				Blocks: true,
+			},
+			Pages: plugin.PageSettings{
+				Blocks: true,
+				// Comments:    true,
+				// Attachments: true,
+			},
+			Blocks: plugin.BlockSettings{
+				Children: true,
+			},
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -79,7 +87,8 @@ func main() {
 		}
 	}
 
-	result, err := redisPlugin.Service.ExportAll(ctx)
+	result, err := redisPlugin.Service.Export(ctx)
+	// result, err := redisPlugin.Service.ExportDatabase(ctx, types.DatabaseID("23fd7342e57181668a2ee373221477ad"), true)
 	if err != nil {
 		log.Fatal(err)
 	}

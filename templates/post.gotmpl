@@ -1,0 +1,40 @@
+---
+title: {{ .Title }}
+description: {{ .Description }}
+date: {{ .Date }}
+tags: {{ .Tags }}
+---
+
+{{ range .Blocks }}
+  {{ .Content }}
+  {{ switch .Type }}
+  {{ case "paragraph" }}
+    <p>{{ .Content }}</p>
+  {{ case "heading_1" }}
+    <h1>{{ .Content }}</h1>
+  {{ case "heading_2" }}
+    <h2>{{ .Content }}</h2>
+  {{ case "heading_3" }}
+    <h3>{{ .Content }}</h3>
+  {{ case "bulleted_list_item" }}
+    <li>{{ .Content }}</li>
+  {{ case "numbered_list_item" }}
+    <li>{{ .Content }}</li>
+  {{ case "to_do" }}
+    <input type="checkbox" {{ if .Checked }}checked{{ end }}> {{ .Content }}
+  {{ case "toggle" }}
+    <details>
+      <summary>{{ .Content }}</summary>
+    </details>
+  {{ case "code" }}
+    <pre><code>{{ .Content }}</code></pre>
+  {{ case "quote" }}
+    <blockquote>{{ .Content }}</blockquote>
+  {{ case "callout" }}
+    <div class="callout">{{ .Content }}</div>
+  {{ case "divider" }}
+    <hr>
+  {{ default }}
+    {{ .Content }}
+  {{ end }}
+{{ end }}

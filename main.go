@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/mateothegreat/go-multilog/multilog"
-	"github.com/notioncodes/client"
 	"github.com/notioncodes/plugin"
 	redis "github.com/notioncodes/plugin-redis"
 	"github.com/notioncodes/test"
@@ -14,17 +13,7 @@ import (
 )
 
 func main() {
-	client, err := client.New(&client.Config{
-		APIKey:        test.TestConfig.NotionAPIKey,
-		EnableMetrics: true,
-		RequestDelay:  10 * time.Second, // Throttle requests to prevent API overload
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Close()
-
-	redisPlugin, err := redis.NewPlugin(client, redis.Config{
+	redisPlugin, err := redis.NewPlugin(redis.Config{
 		Config: plugin.Config{
 			EnableReporter: true,
 			Reporter: &plugin.Reporter{
@@ -49,8 +38,6 @@ func main() {
 		Common: plugin.CommonSettings{
 			Workers:         1,
 			RuntimeTimeout:  30 * time.Minute,
-			RequestTimeout:  10 * time.Minute,
-			RequestDelay:    5 * time.Second,
 			ContinueOnError: false,
 		},
 		Content: plugin.ContentSettings{
@@ -58,7 +45,7 @@ func main() {
 			Types: []types.ObjectType{
 				types.ObjectTypeDatabase,
 				types.ObjectTypePage,
-				// types.ObjectTypeBlock,
+				types.ObjectTypeBlock,
 			},
 			Databases: plugin.DatabaseSettings{
 				Pages:  true,
@@ -78,24 +65,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer redisPlugin.NotionClient.Close()
-
-	go func() {
-		for {
-			time.Sleep(1 * time.Second)
-			metrics := client.GetMetrics()
-			multilog.Info("e2e", "metrics", map[string]interface{}{
-				"requests_per_second": metrics.RequestsPerSecond,
-				"success":             metrics.SuccessRate,
-				"error":               metrics.ErrorRate,
-				"requests":            metrics.TotalRequests,
-				"errors":              metrics.TotalErrors,
-				"successes":           metrics.TotalSuccesses,
-				"retries":             metrics.TotalRetries,
-				"throttled":           metrics.ThrottleWaits,
-				"throttled_time":      metrics.ThrottleWaitTime,
-			})
-		}
-	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()

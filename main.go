@@ -17,7 +17,7 @@ func main() {
 	client, err := client.New(&client.Config{
 		APIKey:        test.TestConfig.NotionAPIKey,
 		EnableMetrics: true,
-		RequestDelay:  1 * time.Second, // Throttle requests to prevent API overload
+		RequestDelay:  10 * time.Second, // Throttle requests to prevent API overload
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +48,7 @@ func main() {
 		},
 		Common: plugin.CommonSettings{
 			Workers:         1,
-			RuntimeTimeout:  30 * time.Second,
+			RuntimeTimeout:  30 * time.Minute,
 			RequestTimeout:  10 * time.Second,
 			RequestDelay:    5 * time.Second,
 			ContinueOnError: false,

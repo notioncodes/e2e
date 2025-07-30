@@ -15,7 +15,8 @@ import (
 
 func main() {
 	client, err := client.New(&client.Config{
-		APIKey: test.TestConfig.NotionAPIKey,
+		APIKey:        test.TestConfig.NotionAPIKey,
+		EnableMetrics: true,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -54,9 +55,9 @@ func main() {
 		Content: plugin.ContentSettings{
 			Flush: true,
 			Types: []types.ObjectType{
-				types.ObjectTypePage,
 				types.ObjectTypeDatabase,
-				types.ObjectTypeBlock,
+				types.ObjectTypePage,
+				// types.ObjectTypeBlock,
 			},
 			Databases: plugin.DatabaseSettings{
 				Pages:  true,
@@ -76,6 +77,22 @@ func main() {
 		log.Fatal(err)
 	}
 	defer redisPlugin.NotionClient.Close()
+
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			metrics := client.GetMetrics()
+			multilog.Info("e2e", "metrics", map[string]interface{}{
+				"requests_per_second": metrics.RequestsPerSecond,
+				"success":             metrics.SuccessRate,
+				"error":               metrics.ErrorRate,
+				"requests":            metrics.TotalRequests,
+				"errors":              metrics.TotalErrors,
+				"successes":           metrics.TotalSuccesses,
+				"retries":             metrics.TotalRetries,
+			})
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()

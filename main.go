@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mateothegreat/go-multilog/multilog"
+	"github.com/notioncodes/client"
 	"github.com/notioncodes/plugin"
 	redis "github.com/notioncodes/plugin-redis"
 	"github.com/notioncodes/test"
@@ -79,7 +80,33 @@ func main() {
 		}
 	}
 
-	result, err := redisPlugin.Service.Export(ctx)
+	opts := client.ExportOptions{
+		// PageOptions: client.ExportPageOptions{
+		// 	Blocks: client.ExportBlockOptions{
+		// 		Children: true,
+		// 		Comments: client.ExportCommentOptions{
+		// 			User: true,
+		// 		},
+		// 	},
+		// },
+		// DatabaseOptions: client.ExportDatabaseOptions{
+		// 	Pages: client.ExportPageOptions{
+		// 		Blocks: client.ExportBlockOptions{
+		// 			Children: true,
+		// 			Comments: client.ExportCommentOptions{
+		// 				User: true,
+		// 			},
+		// 		},
+		// 	},
+		// },
+		Databases: true,
+		Pages:     true,
+		Blocks:    true,
+		Comments:  true,
+		Users:     true,
+	}
+
+	result, err := redisPlugin.Service.Export(ctx, opts)
 	if err != nil {
 		log.Fatal(err)
 	}
